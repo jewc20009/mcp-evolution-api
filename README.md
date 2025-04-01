@@ -50,29 +50,59 @@ O servidor expõe todas as categorias de funcionalidades da Evolution API:
 - NPM ou Yarn
 - Acesso a um servidor Evolution API v2
 
-## Configuração
+## Instalação
 
-1. Clone este repositório
-2. Instale as dependências:
+### Via NPM (localmente)
 
 ```bash
+# Instalar localmente
+git clone https://github.com/IntuitivePhella/mcp-evolution-api.git
+cd mcp-evolution-api
 npm install
+npm run build
 ```
 
-3. Configure as variáveis de ambiente:
+### Via NPX (sem instalação)
+
+```bash
+# Executar diretamente via npx (quando publicado)
+npx mcp-evolution-api
+```
+
+### Via Docker
+
+```bash
+# Construir a imagem
+docker build -t mcp-evolution-api .
+
+# Executar o container
+docker run -p 3000:3000 --env-file .env mcp-evolution-api
+```
+
+## Configuração
+
+Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
 
 ```bash
 # URL do servidor Evolution API
-export EVOLUTION_API_URL="https://seu-servidor-evolution-api.com"
+EVOLUTION_API_URL=https://seu-servidor-evolution-api.com
+
 # Chave API da Evolution API
-export EVOLUTION_API_KEY="sua-chave-api"
+EVOLUTION_API_KEY=sua-chave-api
+
 # ID da instância WhatsApp na Evolution API
-export EVOLUTION_API_INSTANCE="instancia-padrao"
+EVOLUTION_API_INSTANCE=instancia-padrao
+
+# Habilitar servidor WebSocket (opcional)
+ENABLE_WEBSOCKET=true
+
+# Porta para o servidor WebSocket (opcional)
+PORT=3000
 ```
 
-Ou crie um arquivo `.env` na raiz do projeto com essas variáveis.
-
 ## Execução
+
+### Linha de comando
 
 Para iniciar o servidor em modo de desenvolvimento:
 
@@ -86,6 +116,61 @@ Para compilar e executar em produção:
 npm run build
 npm start
 ```
+
+### Docker
+
+```bash
+# Usando os scripts do npm
+npm run docker:build
+npm run docker:run
+```
+
+## Métodos de Conexão
+
+Este servidor MCP suporta dois métodos de conexão:
+
+### 1. STDIO (Padrão)
+
+Usado principalmente para conexões locais e integração com ferramentas como Claude Desktop.
+
+### 2. WebSocket
+
+Ideal para conexões remotas ou quando o servidor está em um contêiner Docker. Para habilitar:
+
+```bash
+ENABLE_WEBSOCKET=true
+PORT=3000 # porta opcional, padrão é 3000
+```
+
+## Integração com Ferramentas
+
+### Claude Desktop
+
+Adicione ao seu arquivo `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "evolution-api": {
+      "command": "node",
+      "args": [
+        "/caminho/completo/para/mcp-evolution-api/dist/index.js"
+      ],
+      "env": {
+        "EVOLUTION_API_URL": "https://seu-servidor-evolution-api.com",
+        "EVOLUTION_API_KEY": "sua-chave-api",
+        "EVOLUTION_API_INSTANCE": "sua-instancia"
+      }
+    }
+  }
+}
+```
+
+Veja um exemplo completo em [examples/claude_desktop_config.json](examples/claude_desktop_config.json).
+
+### n8n
+
+Para configurar no n8n, consulte o guia detalhado em [examples/n8n_config.md](examples/n8n_config.md).
 
 ## Ferramentas Disponíveis
 
@@ -165,4 +250,8 @@ console.log(mediaResult.content[0].text);
 // Carregar recursos
 const groups = await client.loadResource("groups://list");
 console.log(groups.contents[0].text);
-``` 
+```
+
+## Licença
+
+MIT 

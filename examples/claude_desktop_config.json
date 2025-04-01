@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "evolution-api": {
+      "command": "node",
+      "args": [
+        "/caminho/completo/para/mcp-evolution-api/dist/index.js"
+      ],
+      "env": {
+        "EVOLUTION_API_URL": "https://seu-servidor-evolution-api.com",
+        "EVOLUTION_API_KEY": "sua-chave-api",
+        "EVOLUTION_API_INSTANCE": "sua-instancia"
+      }
+    }
+  }
+} 

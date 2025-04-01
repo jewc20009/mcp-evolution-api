@@ -1,8 +1,12 @@
 import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { WebSocketServerTransport } from "@modelcontextprotocol/sdk/server/websocket.js";
 import { z } from "zod";
 import { config } from "./config.js";
 import { EvolutionApiService } from "./services/evolutionApiService.js";
+import * as http from "http";
+import { WebSocketServer } from "ws";
+import "dotenv/config";
 
 // Inicializa o serviço da Evolution API
 const evolutionService = new EvolutionApiService();
@@ -721,16 +725,49 @@ server.resource(
 );
 
 // Inicia o servidor usando stdin/stdout para comunicação
-async function startServer() {
-  console.log("Iniciando servidor MCP para Evolution API...");
+export async function startServer() {
+  console.log("Iniciando servidor MCP para Evolution API via STDIO...");
   try {
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    console.log("Servidor MCP iniciado com sucesso!");
+    console.log("Servidor MCP STDIO iniciado com sucesso!");
+    return server;
   } catch (error) {
-    console.error("Erro ao iniciar servidor MCP:", error);
-    process.exit(1);
+    console.error("Erro ao iniciar servidor MCP STDIO:", error);
+    throw error;
   }
 }
 
-startServer(); 
+// Inicia o servidor usando WebSocket
+export async function startWebSocketServer(port: number = 3000) {
+  console.log(`Iniciando servidor MCP para Evolution API via WebSocket na porta ${port}...`);
+  try {
+    const httpServer = http.createServer();
+    const wss = new WebSocketServer({ server: httpServer });
+    
+    const transport = new WebSocketServerTransport(wss);
+    await server.connect(transport);
+    
+    httpServer.listen(port, () => {
+      console.log(`Servidor MCP WebSocket iniciado com sucesso na porta ${port}!`);
+    });
+    
+    return { server, httpServer, wss };
+  } catch (error) {
+    console.error("Erro ao iniciar servidor MCP WebSocket:", error);
+    throw error;
+  }
+}
+
+// Se este arquivo for executado diretamente, inicia o servidor
+if (import.meta.url === `file://${process.argv[1]}`) {
+  // Verifica se o WebSocket está habilitado
+  const enableWebSocket = process.env.ENABLE_WEBSOCKET === 'true';
+  const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+  
+  startServer().catch(console.error);
+  
+  if (enableWebSocket) {
+    startWebSocketServer(port).catch(console.error);
+  }
+} 
